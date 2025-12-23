@@ -1,0 +1,21 @@
+//This will build your own hash list for you to store in a lookup table. Example: MouseJigglerHashes.cs
+
+"#event_simpleName" = ProcessRollup2
+
+//These are the files that i discovered and worked for the environment make adjustments for your org. I found this runs better than doing it via RegEx
+| case {
+       in("ImageFileName", values=["*NoSleep.exe*","*Caffeine.exe*","*ShakeMouse.exe*","*Move Mouse.exe*","*MouseJiggle.exe*","*DontSleep.exe*","*NoSleep2.0.exe*","*clicker.exe*","*DongAutoClicker.exe*","*DontSleep_x64_p.exe*","*DontSleep_x64.exe*","mm.exe*","*MouseJiggle - Copy.exe*","*test_work.exe*","Driver.exe*","Move.exe*","*MoveMouse.exe*","*script2.exe*","*mouseclicker.exe*","*caffeine64.exe*","*caffeine32.exe*","*MySchedule.exe*","*awake.exe*","*Coffee64.exe*","*Mouse.exe*","*caffeine64 (2).exe*","*caffeine64 8.exe*","*caffeine - Copy.exe*","*651-MouseJiggle.exe*"], ignoreCase=true);
+       in("OriginalFilename", values=["*NoSleep.exe*","*Caffeine.exe*","*ShakeMouse.exe*","*Move Mouse.exe*","*MouseJiggle.exe*","*DontSleep.exe*","*NoSleep2.0.exe*","*clicker.exe*","*DongAutoClicker.exe*","*DontSleep_x64_p.exe*","*DontSleep_x64.exe*","mm.exe*","*MouseJiggle - Copy.exe*","*test_work.exe*","Driver.exe*","Move.exe*","*MoveMouse.exe*","*script2.exe*","*mouseclicker.exe*","*caffeine64.exe*","*caffeine32.exe*","*MySchedule.exe*","*awake.exe*","*Coffee64.exe*","*Mouse.exe*","*caffeine64 (2).exe*","*caffeine64 8.exe*","*caffeine - Copy.exe*","*651-MouseJiggle.exe*"], ignoreCase=true);
+       }
+//I found that this path had legit tools here.
+| !regex("(?i).*\\\\Windows\\\\System32\\\\.*", field=ImageFileName)
+
+// HASH FILTER - Here is where you can filter out the hashes that you already have in the lookup file to find new hashes to add to the MouseJigglerHashes.csv. You can automate this to send you alerts when new hashes are found.
+//| !match(file="MouseJigglerHashes.csv", column=Hash, field=SHA256HashData)
+
+
+//comment out if you are only going to run the groupBy([SHA256HashData], function=[count()]) Use this to make sure these are the tools you expect before you added them to the MouseJigglerHashes.csv
+| table([SHA256HashData, ImpactedHosts,ImageFileName,FileName,OriginalFilename])
+
+//uncomment to extract just the Hashes once you review all the data and these are valid hashes.
+//| groupBy([SHA256HashData], function=[count()],limit=20000)
