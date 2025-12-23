@@ -13,7 +13,8 @@ Mouse jigglers are often dismissed as simple productivity fakers, but they pose 
 2.  **Compliance Auditing:** Accurate tracking of active hours versus idle time.
 3.  DPRK
 
-
+## Example Output
+![DashBoard](images/dash.PNG)
 
 
 
