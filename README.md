@@ -10,9 +10,8 @@
 
 Mouse jigglers are often dismissed as simple productivity fakers, but they pose significant security risks:
 1.  **Bypassing Auto-Lock Policies:** Leaving physical machines accessible if the user steps away.
-2.  **Shadow IT:** Unapproved USB devices plugged into corporate endpoints.
-3.  **Compliance Auditing:** Accurate tracking of active hours versus idle time.
-4.  DPRK
+2.  **Compliance Auditing:** Accurate tracking of active hours versus idle time.
+3.  DPRK
 
 
 
