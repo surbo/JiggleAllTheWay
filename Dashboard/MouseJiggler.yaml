@@ -1,0 +1,124 @@
+name: Mouse Jiggler
+timeSelector: {}
+sharedTimeInterval:
+  enabled: false
+  isLive: false
+  start: 1d
+widgets:
+  5e7cef11-0ade-4bea-a50f-5c1a9f06dfed:
+    x: 6
+    y: 7
+    height: 2
+    queryString: |-
+      #event_simpleName=ProcessRollup2
+      | match(file="MouseJigglerHashes.csv", column=Hash, field=SHA256HashData)
+      | ComputerName = ?ComputerName
+      | count()
+    end: now
+    start: 12h
+    width: 4
+    options:
+      default: {}
+    visualization: single-value
+    title: Total Detections
+    isLive: false
+    type: query
+  ee6c65f3-4a23-4e22-80c5-8ff29086dd53:
+    x: 0
+    y: 0
+    height: 7
+    queryString: |-
+      // 1. THE START: Find the "Bad" Start Events
+      #event_simpleName=ProcessRollup2
+      | match(file="MouseJigglerHashes.csv", column=Hash, field=SHA256HashData)
+
+      // Case-Insensitive Dashboard Filters
+      | wildcard(field="ComputerName", pattern=?ComputerName, ignoreCase=true)
+      | wildcard(field="UserName", pattern=?UserName, ignoreCase=true)
+
+      | StartTime := @timestamp
+
+      // 2. THE END: Join with Stop Events
+      | join({
+          #event_simpleName=EndOfProcess
+          | match(file="MouseJigglerHashes.csv", column=Hash, field=SHA256HashData)
+          | rename(@timestamp, as=StopTime)
+        },
+        field=TargetProcessId,
+        key=TargetProcessId,
+        include=[StopTime],
+        mode=left
+      )
+
+      // 3. THE LOGIC
+      | case {
+          StopTime=* | Duration := StopTime - StartTime | Status := "Finished";
+          * | Duration := now() - StartTime | Status := "Still Running";
+      }
+
+      // 4. REPORTING
+      | DurationSeconds := (Duration + 0) / 1000
+      | RawH := DurationSeconds / 3600
+      | RawM := (DurationSeconds % 3600) / 60
+      | RawS := DurationSeconds % 60
+
+      | format("%dHrs %dMins %dSecs", field=[RawH, RawM, RawS], as=DurationFriendly)
+      | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as=StartReadable)
+      | regex("(?<ExeName>[^\\\]+$)", field=ImageFileName)
+
+      // 5. THE OUTPUT
+      | table([ComputerName, UserName, ExeName, StartReadable, DurationFriendly, Status], limit=10000)
+      | sort(StartReadable, order=asc)
+    end: now
+    start: 1d
+    width: 10
+    options:
+      cell-overflow: wrap-text
+      column-overflow: truncate
+      configured-columns:
+        Status:
+          color:
+            conditions:
+            - color: '#31C45699'
+              condition:
+                arg: Finished
+                type: Equal
+            - color: '#c5d577ff'
+              condition:
+                arg: Still Running
+                type: Equal
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Running Status
+    isLive: false
+    type: query
+  parameter-panel-1766498428639-1:
+    x: 0
+    y: 7
+    parameterIds:
+    - ComputerName
+    - UserName
+    height: 2
+    width: 6
+    title: Filter
+    type: parameterPanel
+$schema: https://schemas.humio.com/dashboard/v0.23.0
+parameters:
+  ComputerName:
+    query: '#event_simpleName=ProcessRollup2 | groupBy(ComputerName, function=count())'
+    timeInterval: 1d
+    useDashboardTimeIfSet: false
+    type: query
+    defaultValue: '*'
+    width: 1
+    order: 0
+    valueField: ComputerName
+  UserName:
+    query: '#event_simpleName=ProcessRollup2 | groupBy(UserName, function=count())'
+    timeInterval: 1d
+    useDashboardTimeIfSet: false
+    type: query
+    defaultValue: '*'
+    width: 1
+    order: 1
+    valueField: UserName
