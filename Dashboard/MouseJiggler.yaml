@@ -63,12 +63,34 @@ widgets:
       | RawS := DurationSeconds % 60
 
       | format("%dHrs %dMins %dSecs", field=[RawH, RawM, RawS], as=DurationFriendly)
-      | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as=StartReadable)
       | regex("(?<ExeName>[^\\\]+$)", field=ImageFileName)
 
-      // 5. THE OUTPUT
-      | table([ComputerName, UserName, ExeName, StartReadable, DurationFriendly, Status], limit=10000)
-      | sort(StartReadable, order=asc)
+      // 5. THE OUTPUT (The "Raw" Table)
+      | sort(StartTime, order=asc)
+      // We include 'StartTime' here so the data survives, but we haven't formatted it yet.
+      | table([ComputerName, UserName, ExeName, DurationFriendly, Status, StartTime], limit=10000)
+
+      // =======================================================================
+      // 6. TIMEZONE SELECTOR (The Creative Fix)
+      // Uncomment the block for your region.
+      // This formats the time AND puts the column in the right spot with the right name.
+      // =======================================================================
+
+      // OPTION: US CENTRAL (CST/CDT) -- [ENABLED]
+      | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as="StartReadable-CST", timezone="America/Chicago")
+      | select([ComputerName, UserName, ExeName, "StartReadable-CST", DurationFriendly, Status])
+
+      // OPTION: US EASTERN (EST/EDT)
+      // | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as="StartReadable-EST", timezone="America/New_York")
+      // | select([ComputerName, UserName, ExeName, "StartReadable-EST", DurationFriendly, Status])
+
+      // OPTION: US PACIFIC (PST/PDT)
+      // | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as="StartReadable-PST", timezone="America/Los_Angeles")
+      // | select([ComputerName, UserName, ExeName, "StartReadable-PST", DurationFriendly, Status])
+
+      // OPTION: UTC
+      // | formatTime("%Y-%m-%d %H:%M:%S", field=StartTime, as="StartReadable-UTC")
+      // | select([ComputerName, UserName, ExeName, "StartReadable-UTC", DurationFriendly, Status])
     end: now
     start: 1d
     width: 10
