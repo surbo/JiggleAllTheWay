@@ -1,4 +1,4 @@
-//This will build your own hash list for you to store in a lookup table. Example: MouseJigglerHashes.cs
+//This will build your own hash list for you to store in a lookup table. Example: MouseJigglerHashes.csv
 
 "#event_simpleName" = ProcessRollup2
 
